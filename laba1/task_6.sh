@@ -2,13 +2,7 @@
 
 if [ $# -eq 3 ]
 then
-    IS_CORRECT=true
-    if [ ! -w "$1" ]
-    then
-        IS_CORRECT=false
-        echo "Файл не существует или не доступен для записи" >&2
-    fi
-    
+    IS_CORRECT=true    
     if [ ! -d "$2" ]
     then
         IS_CORRECT=false
