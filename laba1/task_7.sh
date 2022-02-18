@@ -5,9 +5,7 @@ EXE_FILE="$2"
 
 if [ $# -eq 2 ]; then
 	if [ -f "$C_FILE" ]; then
-		if gcc "$1" -o "$2"; then
-			./"$2"
-		fi
+		gcc "$C_FILE" -o "$EXE_FILE" && ./"$EXE_FILE"
 	else
 		echo "File $C_FILE doesn't exist"
 	fi

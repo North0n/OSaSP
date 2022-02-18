@@ -1,9 +1,13 @@
 #!/bin/bash
 
+OUTPUT_FILE="$1"
+DIRECTORY="$2"
+FILE_EXT="$3"
+
 if [ $# -eq 3 ]
 then
     IS_CORRECT=true    
-    if [ ! -d "$2" ]
+    if [ ! -d "$DIRECTORY" ]
     then
         IS_CORRECT=false
         echo "Заданная директория не существует или не является директорией" >&2
@@ -11,7 +15,7 @@ then
     
     if [ "$IS_CORRECT" = "true" ]
     then
-	find "$2" -maxdepth 1 -name "*.$3" -exec basename {} \; | sort>"$1"
+	find "$DIRECTORY" -maxdepth 1 -name "*.$FILE_EXT" -exec basename {} \; | sort>"$OUTPUT_FILE"
     fi
 else
     echo "Введите 3 параметра:"
