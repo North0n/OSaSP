@@ -16,10 +16,12 @@ if [ $# -eq 2 ]; then
 		done
 		IFS=$OIFS
 	else
-		echo "$DIRECTORY is not a directory"
+		echo "$DIRECTORY is not a directory">&2
 	fi
 else
-	echo "You should enter 2 parameters"
-	echo "	First - directory's name"
-	echo "	Second - output file's name"
+	{
+		echo "You should enter 2 parameters"
+		echo "	First - directory's name"
+		echo "	Second - output file's name"
+	}>&2
 fi

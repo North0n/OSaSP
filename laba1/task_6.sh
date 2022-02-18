@@ -15,11 +15,13 @@ then
     
     if [ "$IS_CORRECT" = "true" ]
     then
-	find "$DIRECTORY" -maxdepth 1 -name "*.$FILE_EXT" -exec basename {} \; | sort>"$OUTPUT_FILE"
+		find "$DIRECTORY" -maxdepth 1 -name "*.$FILE_EXT" -exec basename {} \; | sort>"$OUTPUT_FILE"
     fi
 else
-    echo "Введите 3 параметра:"
-    echo "  1 - файл, в который будет записан вывод"
-    echo "  2 - имя дериктории"
-    echo "  3 - расширение файла"
+	{
+    	echo "Введите 3 параметра:"
+	    echo "  1 - файл, в который будет записан вывод"
+	    echo "  2 - имя дериктории"
+	    echo "  3 - расширение файла"
+    }>&2
 fi
