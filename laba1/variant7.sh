@@ -3,34 +3,21 @@
 DIRECTORY="$1"
 FILENAME="$2"
 
-findDirSize(){
-	# $1 - passed dir
-	local SIZE=0
-	echo "$(find "$1" -type d)"
-	for DIR in $(find "$1" -type d); do
-		echo "$(pwd)"
-		echo "$(realpath "$1")"
-		if [ ! "$(pwd)" = "$(realpath "$1")" ]; then
-			echo "2"
-			SIZE=$(($SIZE+$(findDirSize "$DIR")))
-		fi
-		echo "1"
-	done
-	for FILE in $(find "$1" -type f); do
-		let SIZE=$SIZE+$(du -h "$FILE" --apparent-size)
-	done
-	PATH=$(realpath "$1")
-	printf "%60s%6d\n" "$PATH" "$SIZE" >>"$FILENAME"
-	echo "$SIZE"
-}
-
-echo "$(realpath "$1")"
-
 if [ $# -eq 2 ]; then
-	# find DIRECTORY -print выводит полные имена файлов
-	# du -h <filename> --apparent-size выводит размер файла
-	echo -n>$FILENAME
-	findDirSize "$DIRECTORY"
+	if [ -d "$DIRECTORY" ]; then
+		echo -n > "$FILENAME"
+		OIFS=$IFS
+		IFS=$'\n'
+		for DIR in $(find "$DIRECTORY" -type d); do
+			REALPATH=$(realpath "$DIR")
+			SIZE=$(du -hs "$DIR" --apparent-size | cut -f 1)
+			COUNT=$(find "$DIR" ! -type d | wc -l)
+			printf "%100s %8s %6d\n" "$REALPATH" "$SIZE" "$COUNT" >> "$FILENAME"
+		done
+		IFS=$OIFS
+	else
+		echo "$DIRECTORY is not a directory"
+	fi
 else
 	echo "You should enter 2 parameters"
 	echo "	First - directory's name"
