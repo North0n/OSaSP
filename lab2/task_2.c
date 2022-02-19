@@ -7,7 +7,8 @@
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-        printf("You should enter filename as parameter\n");
+        printf("You should enter 1 parameter:\n");
+        printf("    First - filename\n");
         return 1;
     }
 
