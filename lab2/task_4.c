@@ -23,14 +23,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    const char *filename = argv[1];
     int groupSize = atoi(argv[2]);
     if (groupSize < 0) {
         printf("You entered wrong group size. It should be >=0\n");
         return 1;
     }
     FILE *file;
-    if ((file = fopen(filename, "r")) == NULL) {
+    if ((file = fopen(argv[1], "r")) == NULL) {
         printf("Error during file opening attempt\n");
         return 1;
     }

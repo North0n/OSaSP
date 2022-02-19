@@ -10,9 +10,8 @@ int main(int argc, char *argv[])
     }
 
     printf("Type ^F to exit.\n");
-    const char *filename = argv[1];
     FILE *file;
-    if ((file = fopen(filename, "w")) == NULL) {
+    if ((file = fopen(argv[1], "w")) == NULL) {
         printf("Error during file opening attempt\n");
         return 1;
     }

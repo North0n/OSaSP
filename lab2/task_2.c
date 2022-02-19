@@ -12,9 +12,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    const char *filename = argv[1];
     int fDescriptor;
-    if ((fDescriptor = open(filename, O_RDONLY)) < 0) {
+    if ((fDescriptor = open(argv[1], O_RDONLY)) < 0) {
         printf("Error during file opening attempt. Error code: %d\n", fDescriptor);
         return fDescriptor;
     }
