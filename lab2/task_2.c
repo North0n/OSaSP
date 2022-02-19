@@ -1,8 +1,5 @@
 #include <stdio.h>
-#include <fcntl.h>
 #include <unistd.h>
-
-#define BUFFER_SIZE 32
 
 int main(int argc, char *argv[])
 {
@@ -13,24 +10,23 @@ int main(int argc, char *argv[])
     }
 
     int fDescriptor;
-    if ((fDescriptor = open(argv[1], O_RDONLY)) < 0) {
-        printf("Error during file opening attempt. Error code: %d\n", fDescriptor);
-        return fDescriptor;
+    FILE *file;
+    if ((file = fopen(argv[1], "r")) == NULL) {
+        printf("Error during attempt to open file\n");
+        return 1;
     }
 
-    char buffer[BUFFER_SIZE + 1];
-    int errorCode;
-    while ((errorCode = read(fDescriptor, buffer, BUFFER_SIZE)) > 0) {
-        buffer[BUFFER_SIZE] = '\0';
-        puts(buffer);
-    }
-    if (errorCode < 0) {
-        printf("Error during file reading attempt. Error code: %d\n", errorCode);
+    char ch;
+    while ((ch = getc(file)) != EOF) {
+        if (putchar(ch) == EOF) {
+            printf("Error during attempt to write to the output\n");
+            break;
+        }
     }
 
-    if (errorCode = close(fDescriptor)) {
-        printf("Error during file closing attempt. May cause loss of data. Error code: %d", errorCode);
-        return errorCode;
+    if (fclose(file) == EOF) {
+        printf("Error during file closing attempt. May cause loss of data\n");
+        return 1;
     }
 
     return 0;
