@@ -47,7 +47,6 @@ int main(int argc, char *argv[])
         }
     }
     
-
     if (fclose(file) == EOF) {
         printf("Error during file closing attempt. May cause loss of data.\n");
         return 1;
