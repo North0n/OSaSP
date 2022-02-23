@@ -17,21 +17,21 @@ int printStr(FILE *inputFile, FILE *outputFile)
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
-        printf("You should enter 2 parameters:\n");
-        printf("    First - filename\n");
-        printf("    Second - group size\n");
-        return 1;
+        fprintf(stderr, "You should enter 2 parameters:\n");
+        fprintf(stderr, "    First - filename\n");
+        fprintf(stderr, "    Second - group size\n");
+        return -1;
     }
 
     int groupSize = atoi(argv[2]);
     if (groupSize < 0) {
-        printf("You entered wrong group size. It should be >=0\n");
-        return 1;
+        fprintf(stderr, "You entered wrong group size. It should be >=0\n");
+        return -1;
     }
     FILE *file;
     if ((file = fopen(argv[1], "r")) == NULL) {
-        printf("Error during file opening attempt\n");
-        return 1;
+        perror("Error during file opening attempt\n");
+        return -2;
     }
 
     int eof = 42;
@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
     }
     
     if (fclose(file) == EOF) {
-        printf("Error during file closing attempt. May cause loss of data.\n");
-        return 1;
+        perror("Error during file closing attempt. May cause loss of data.\n");
+        return -3;
     }
 
     return 0;
