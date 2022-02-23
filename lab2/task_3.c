@@ -4,29 +4,29 @@
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-        printf("You should enter 1 parameter:\n");
-        printf("    First - filename\n");
-        return 1;
+        fprintf(stderr, "You should enter 1 parameter:\n");
+        fprintf(stderr, "    First - filename\n");
+        return -1;
     }
 
     printf("Type ^F to exit.\n");
     FILE *file;
     if ((file = fopen(argv[1], "w")) == NULL) {
-        printf("Error during file opening attempt\n");
-        return 1;
+        perror("Error during file opening attempt\n");
+        return -2;
     }
 
     char ch;
     while ((ch = getc(stdin)) != 6) { // '^F' == 6
         if (fputc(ch, file) == EOF) {
-            printf("Error during attempt to write to the file\n");
+            perror("Error during attempt to write to the file\n");
             break;
         }
     }
 
     if (fclose(file) == EOF) {
-        printf("Error during file closing attempt. May cause loss of data.\n");
-        return 1;
+        perror("Error during file closing attempt. May cause loss of data.\n");
+        return -3;
     }
 
     return 0;
