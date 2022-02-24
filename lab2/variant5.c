@@ -5,12 +5,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-int printDirInfo(const char *dirname)
+#define FORMAT_STR1 "%100s %8d %5d "
+#define FORMAT_STR2 "%50s"
+#define FORMAT_STR_HEADER "%100s %8s %5s %50s\n"
+
+int printDirInfo(char *dirname, FILE *file)
 {
     DIR *dir;
     if ((dir = opendir(dirname)) == NULL) {
         perror("Error during attempt to open directory.\n");
-        return -1;
+        return -2;
     }
     struct dirent *dirent;
     struct stat stats;
@@ -18,17 +22,23 @@ int printDirInfo(const char *dirname)
     int filesCount = 0;
     int maxSize = 0;
     char *maxSizeFilename = (char *)malloc((NAME_MAX + 1) * sizeof(char));
+    maxSizeFilename[0] = '\0';
     char *temp = NULL;
+    int length = strlen(dirname);
+    int error = 0;
     while ((dirent = readdir(dir)) != NULL) {
-        if (strcmp(dirname, ".") ^ strcmp(dirname, "..")) // Мб сделать не xor а по-нормальному
-            return 0;
-        if (stat(dirent->d_name, &stats)) { // Мб заменить на lstat
-            printf("Path: %s Filename: %s", getcwd(temp, 0), dirent->d_name);
+        if (strcmp(dirent->d_name, ".") == 0 || strcmp(dirent->d_name, "..") == 0)
+            continue;
+        dirname[length] = '/';
+        dirname[length + 1] = '\0';
+        strcat(dirname, dirent->d_name);
+        if (lstat(dirname, &stats)) { 
+            fprintf(stderr, "Filename: %s\n", dirname);
             perror("Error during attempt to get info about file.\n");
-            return -2; // Добавить закрытие файлов и возможность выбрасывание ошибки вверх в рекурсии (а мб и не добавлять)
+            continue;
         }
         if (S_ISDIR(stats.st_mode))
-            printDirInfo(dirent->d_name);
+            error |= printDirInfo(dirname, file);
         else {
             size += stats.st_size;
             ++filesCount;
@@ -38,37 +48,21 @@ int printDirInfo(const char *dirname)
             }
         }
     }
-    printf("Name: %s Size: %d File's count: %d File with max size: %s\n", dirname, size, filesCount, maxSizeFilename);
+    dirname[length] = '/';
+    dirname[length + 1] = '\0';
+    printf(FORMAT_STR1, dirname, size, filesCount);
+    fprintf(file, FORMAT_STR1, dirname, size, filesCount);
+    if (filesCount != 0) {
+        printf(FORMAT_STR2, maxSizeFilename);
+        fprintf(file, FORMAT_STR2, maxSizeFilename);
+    }
+    printf("\n");
+    fprintf(file, "\n");
     if (closedir(dir)) {
         perror("Error during attempt to close directory.\n");
-        return -3;
+        return -4;
     }
-    return 0;
-}
-
-int printDir(const char *dirname)
-{
-    DIR *dir;
-    if ((dir = opendir(dirname)) == NULL) {
-        printf("Error during attempt to open directory %s\n", dirname);
-        return 1;
-    }
-    printf("Contents of %s:\n", dirname);
-    struct dirent *dirent;
-    struct stat stats;
-    while ((dirent = readdir(dir)) != NULL) {
-        stat(dirent->d_name, &stats); // Добавить проверку на появление ошибки
-        if (S_ISDIR(stats.st_mode))
-            printf("    Name: %s Size: %ld Dir: %s\n", dirent->d_name, stats.st_size, S_ISDIR(stats.st_mode) ? "true" : "false");
-        else
-            printf("    Name: %s\n", dirent->d_name);
-    }
-    if (closedir(dir)) {
-        printf("Error during attempt to close directory %s\n", dirname);
-        return 1;
-    }
-
-    return 0;
+    return error;
 }
 
 int main(int argc, char *argv[])
@@ -77,10 +71,20 @@ int main(int argc, char *argv[])
         printf("You should enter 2 parameters:\n");
         printf("    First - directory's name\n");
         printf("    Second - output file's name\n");
-        return 1;
+        return -1;
     }
 
-    int errorCode = printDirInfo(argv[1]);
+    char *buf = (char*)malloc(PATH_MAX * sizeof(char));
+    strcpy(buf, argv[1]);
+
+    FILE *outputFile;
+    if ((outputFile = fopen(argv[2], "w")) == NULL)
+        perror("Error during attempt to open output file.\n");
+    fprintf(outputFile, FORMAT_STR_HEADER, "Filename", "Size", "Count", "Max size");
+    printf(FORMAT_STR_HEADER, "Filename", "Size", "Count", "Max size");
+    int errorCode = printDirInfo(buf, outputFile);
+    if (fclose(outputFile)) 
+        perror("Erorr during attempt to close output file. May cause loss of data.\n");
 
     return errorCode;
 }
