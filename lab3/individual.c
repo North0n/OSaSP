@@ -7,6 +7,14 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#define ERR_ARGS_COUNT (-1)
+#define ERR_FILE_OPEN (-2)
+#define ERR_FILE_CLOSE (-3)
+#define ERR_OPEN_DIR (-4)
+#define ERR_CLOSE_DIR (-5)
+#define ERR_SIG_ASSIGN (-6)
+#define ERR_MAX_PROC (-7)
+
 int processesCount = 1;
 
 void processExited(int x)
@@ -15,9 +23,6 @@ void processExited(int x)
         --processesCount;
     }
 }
-
-#define ERR_FILE_OPEN (-2)
-#define ERR_FILE_CLOSE (-3)
 
 int findFreq(const char *filename, const char *substr, int *lettersCount)
 {
@@ -58,7 +63,7 @@ int dirTraversal(char *dirname, const char *str, int maxProc)
     DIR *dir;
     if ((dir = opendir(dirname)) == NULL) {
         perror("Error during attempt to open directory.\n");
-        return -4;
+        return ERR_OPEN_DIR;
     }
     struct dirent *dirent;
     struct stat stats;
@@ -106,7 +111,7 @@ int dirTraversal(char *dirname, const char *str, int maxProc)
     }
     if (closedir(dir)) {
         perror("Error during attempt to close directory.\n");
-        return -5;
+        return ERR_CLOSE_DIR;
     }
     return 0;
 }
@@ -118,18 +123,18 @@ int main(int argc, char *argv[])
         printf("    1. Directory's name\n");
         printf("    2. String to find\n");
         printf("    3. Maximum number of processes\n");
-        return -1;
+        return ERR_ARGS_COUNT;
     }
 
     int maxProc = (int)strtol(argv[3], NULL, 10);
     if (maxProc <= 0) {
         printf("Maximum number of processes must be more than 0\n");
-        return -7;
+        return ERR_MAX_PROC;
     }
 
     if (signal(SIGCHLD, processExited) == SIG_ERR) {
         perror("Error during attempt to assign signal to a process termination\n");
-        return -6;
+        return ERR_SIG_ASSIGN;
     }
 
     char *dirname = (char*)malloc(PATH_MAX * sizeof(char));
