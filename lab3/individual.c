@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <limits.h>
 
 #define ERR_ARGS_COUNT (-1)
 #define ERR_FILE_OPEN (-2)
@@ -127,7 +128,7 @@ int main(int argc, char *argv[])
     }
 
     int maxProc = (int)strtol(argv[3], NULL, 10);
-    if (maxProc <= 0) {
+    if (maxProc <= 0 || maxProc == LONG_MAX) {
         printf("Maximum number of processes must be more than 0\n");
         return ERR_MAX_PROC;
     }
