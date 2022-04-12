@@ -3,44 +3,66 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/wait.h>
-#include <limits.h>
 #include <string.h>
 
-#define SECS_IN_DAY (24 * 60 * 60)
-#define TIMEZONE 3
-
-#define ERROR_GETTING_TIME 0x01
-
-static void displayTime()
+void printTime()
 {
-    struct timespec ts;
+    char timeStr[200];
+    struct timespec time;
+    struct tm *parsedTime;
 
-    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+    if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
         perror("Error occurred during attempt to get time\n");
-        _exit(ERROR_GETTING_TIME);
+        exit(EXIT_FAILURE);
     }
 
-    printf("%02ld:%02ld:%02ld:%03ld\n",
-           (ts.tv_sec % SECS_IN_DAY) / 3600 + TIMEZONE,
-           (ts.tv_sec % 3600) / 60,
-           ts.tv_sec % 60,
-           ts.tv_nsec / 1000000);
+    if ((parsedTime = localtime(&time.tv_sec)) == NULL) {
+        perror("Error occurred during attempt to parse time using localtime\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (strftime(timeStr, sizeof(timeStr), "%T", parsedTime) == 0) {
+        fprintf(stderr, "Time str exceed given size. Strftime returned 0\n");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("Time: %s:%ld\n", timeStr, time.tv_nsec / 1000000);
+}
+
+// Returns amount of created processes
+int handleProcess()
+{
+    switch (fork()) {
+        case -1:
+            perror("Error during attempt to start another process\n");
+            return 0;
+        case 0:
+            printf("Process's PID: %6d Process parent's PID: %6d\n", getpid(), getppid());
+            printTime();
+            exit(0);
+        default:
+            return 1;
+    }
 }
 
 int main(int argc, char *argv[])
 {
-    pid_t pid1;
-    pid_t pid2;
-    pid1 = fork();
-    if (pid1 != 0) {
-        pid2 = fork();
-    }
+    int processesCount = 0;
+    processesCount += handleProcess();
+    processesCount += handleProcess();
     printf("Process's PID: %6d Process parent's PID: %6d\n", getpid(), getppid());
-    printf("Time: ");
-    displayTime();
-    if (pid1 != 0 && pid2 != 0) {
-        waitpid(pid1, NULL, 0);
-        waitpid(pid2, NULL, 0);
-    }
+    printTime();
+
+    char *execName = calloc(sizeof(char), FILENAME_MAX);
+    strcpy(execName, strrchr(argv[0], '/') + 1);
+    char *command = calloc(sizeof(char), FILENAME_MAX + 6);
+    sprintf(command, "ps -C %s", execName);
+    system(command);
+    free(command);
+    free(execName);
+
+    for (int i = 0; i < processesCount; ++i)
+        wait(NULL);
+
     return 0;
 }
