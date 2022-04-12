@@ -53,16 +53,31 @@ int main(int argc, char *argv[])
     printf("Process's PID: %6d Process parent's PID: %6d\n", getpid(), getppid());
     printTime();
 
-    char *execName = calloc(sizeof(char), FILENAME_MAX);
+    char *execName = NULL, *command = NULL;
+    if ((execName = calloc(sizeof(char), FILENAME_MAX)) == NULL) {
+        perror("Error during attempt to allocate memory\n");
+        if (system("ps -x") == -1)
+            perror("Error during attempt to execute \"ps -x\"");
+        goto WaitForChildren;
+    }
     strcpy(execName, strrchr(argv[0], '/') + 1);
-    char *command = calloc(sizeof(char), FILENAME_MAX + 6);
+    if ((command = calloc(sizeof(char), FILENAME_MAX + 6)) == NULL) {
+        perror("Error during attempt to allocate memory\n");
+        if (system("ps -x") == -1)
+            perror("Error during attempt to execute \"ps -x\"");
+        goto WaitForChildren;
+    }
     sprintf(command, "ps -C %s", execName);
-    system(command);
+    if (system(command) == -1)
+        perror("Error during attempt to execute \"ps\"");
+
+WaitForChildren:
     free(command);
     free(execName);
 
     for (int i = 0; i < processesCount; ++i)
-        wait(NULL);
+        if (wait(NULL) == -1)
+            perror("Error during attempt to wait process termination\n");
 
     return 0;
 }
